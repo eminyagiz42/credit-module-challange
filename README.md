@@ -1,3 +1,3 @@
-# credit-module-challange
+# credit-module-challenge
 
 this is initial commit
