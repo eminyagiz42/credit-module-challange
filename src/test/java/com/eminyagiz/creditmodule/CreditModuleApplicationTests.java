@@ -8,6 +8,7 @@ class CreditModuleApplicationTests {
 
 	@Test
 	void contextLoads() {
+		//TODO Provide extensive unit tests for all test cases
 	}
 
 }

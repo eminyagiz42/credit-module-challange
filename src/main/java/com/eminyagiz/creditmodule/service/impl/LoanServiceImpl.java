@@ -5,7 +5,7 @@ import com.eminyagiz.creditmodule.model.entity.Installment;
 import com.eminyagiz.creditmodule.service.LoanService;
 import com.eminyagiz.creditmodule.common.exception.CustomerNotEnoughLimitForLoanException;
 import com.eminyagiz.creditmodule.common.mapper.LoanMapper;
-import com.eminyagiz.creditmodule.repository.LoanInstallmentRepository;
+import com.eminyagiz.creditmodule.repository.InstallmentRepository;
 import com.eminyagiz.creditmodule.repository.LoanRepository;
 import com.eminyagiz.creditmodule.model.entity.Loan;
 import com.eminyagiz.creditmodule.model.entity.User;
@@ -33,17 +33,16 @@ import java.util.Optional;
 public class LoanServiceImpl implements LoanService {
     private final UserService userService;
     private final LoanRepository loanRepository;
-    private final LoanInstallmentRepository loanInstallmentRepository; // FIXME use LoanInstallmentService!
+    private final InstallmentRepository installmentRepository;
     private final LoanMapper loanMapper;
 
     @Override
     @Transactional
-    public CreateLoanResponse create(CreateCreditLoanRequest createCreditLoanRequest) {
+    public CreateLoanResponse createLoan(CreateCreditLoanRequest createCreditLoanRequest) {
         User user = getUserToCreateLoan(createCreditLoanRequest);
 
         BigDecimal totalLoanAmount = calculateTotalLoanAmount(createCreditLoanRequest);
 
-        // save loan with installments
         Loan loan = Loan.builder()
                 .user(user)
                 .loanAmount(totalLoanAmount)
@@ -99,8 +98,8 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public List<LoanResponse> getLoans(GetAllCustomerLoanRequest allCustomerLoanRequest) {
-        Long customerId = allCustomerLoanRequest.customerId(); // TODO think to use JPA Specifications
+    public List<LoanResponse> getLoansByCustomerId(GetAllCustomerLoanRequest allCustomerLoanRequest) {
+        Long customerId = allCustomerLoanRequest.customerId();
         return loanRepository.getLoansByUserId(customerId).stream().map(loanMapper::toLoanResponse).toList();
     }
 
@@ -131,7 +130,6 @@ public class LoanServiceImpl implements LoanService {
         if (isAllLoanInstallmentsArePaid(payInstallmentDTO.installments())) {
             loan.setIsPaid(Boolean.TRUE);
             saveLoan(loan);
-            // customerService.freeUsedCreditLimit(customer, loan.getLoanAmount()); // TODO shall the usedCreditLimit be updated?
         }
         return new PayLoanResponse(validateLoanFactor, payInstallmentDTO.paidAmount, loan.getIsPaid());
     }
@@ -151,20 +149,20 @@ public class LoanServiceImpl implements LoanService {
                 Installment installment = installments.get(installmentIndex);
                 installment.setIsPaid(Boolean.TRUE);
                 installment.setPaymentDate(currentDate);
-                // TODO hide these calculations over an abstraction specifically a strategy!
-                if (DateUtils.isSameDay(installment.getDueDate(), currentDate)) { // same day
+
+                if (DateUtils.isSameDay(installment.getDueDate(), currentDate)) {
                     paidAmount = paidAmount.add(installment.getAmount());
                     installment.setPaidAmount(installment.getAmount());
-                } else if (currentDate.before(installment.getDueDate())) { // reward
+                } else if (currentDate.before(installment.getDueDate())) {
                     BigDecimal rewardedLoan = installment.getAmount().subtract(installment.getAmount().divide(BigDecimal.valueOf(1000), 2, RoundingMode.FLOOR));
                     paidAmount = paidAmount.add(rewardedLoan);
                     installment.setPaidAmount(rewardedLoan);
-                } else { // penalty
+                } else {
                     BigDecimal rewardedLoan = installment.getAmount().add(installment.getAmount().divide(BigDecimal.valueOf(1000), 2, RoundingMode.FLOOR));
                     paidAmount = paidAmount.add(rewardedLoan);
                     installment.setPaidAmount(installment.getAmount());
                 }
-                loanInstallmentRepository.save(installment);
+                installmentRepository.save(installment);
             }
         }
         return new PayInstallmentDTO(installments, paidAmount);
@@ -193,10 +191,8 @@ public class LoanServiceImpl implements LoanService {
     }
 
     private BigDecimal calculateTotalLoanAmount(CreateCreditLoanRequest createCreditLoanRequest) {
-        // amount * (1 + interest rate)
         return createCreditLoanRequest.amount().multiply(BigDecimal.valueOf(1 + createCreditLoanRequest.interestRate()));
     }
-
 
     private record PayInstallmentDTO(List<Installment> installments, BigDecimal paidAmount) {
 

@@ -4,7 +4,7 @@ import com.eminyagiz.creditmodule.model.dto.LoanInstallmentResponse;
 
 import java.util.List;
 
-public interface LoanInstallmentService {
+public interface InstallmentService {
 
-    List<LoanInstallmentResponse> getByLoanId(Long loanId);
+    List<LoanInstallmentResponse> getInstallmentsByLoanId(Long loanId);
 }

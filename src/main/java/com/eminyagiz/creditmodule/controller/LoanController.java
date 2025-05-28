@@ -1,7 +1,7 @@
 package com.eminyagiz.creditmodule.controller;
 
 import com.eminyagiz.creditmodule.model.dto.*;
-import com.eminyagiz.creditmodule.service.LoanInstallmentService;
+import com.eminyagiz.creditmodule.service.InstallmentService;
 import com.eminyagiz.creditmodule.service.LoanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +17,12 @@ import java.util.List;
 public class LoanController {
 
     private final LoanService loanService;
-    private final LoanInstallmentService loanInstallmentService;
+    private final InstallmentService installmentService;
 
     @PostMapping
     @PreAuthorize("#createCreditLoanRequest.customerId() == authentication.principal.id or hasAuthority('ADMIN')")
     public CreateLoanResponse createLoan(@Valid @RequestBody CreateCreditLoanRequest createCreditLoanRequest) {
-        return loanService.create(createCreditLoanRequest);
+        return loanService.createLoan(createCreditLoanRequest);
     }
 
     @PutMapping
@@ -33,8 +33,8 @@ public class LoanController {
 
     @GetMapping()
     @PreAuthorize("#customerId == authentication.principal.id or hasAuthority('ADMIN')")
-    public List<LoanResponse> getCustomerLoansById(@RequestParam Long customerId) {
-        return loanService.getLoans(new GetAllCustomerLoanRequest(customerId, 0, false));
+    public List<LoanResponse> getLoansByCustomerId(@RequestParam Long customerId) {
+        return loanService.getLoansByCustomerId(new GetAllCustomerLoanRequest(customerId, 0, false));
     }
 
     @GetMapping("/{loanId}")
@@ -44,8 +44,8 @@ public class LoanController {
     }
 
     @GetMapping("/{loanId}/installment")
-    public List<LoanInstallmentResponse> getCustomerLoanInstallments(@PathVariable Long loanId) {
-        return loanInstallmentService.getByLoanId(loanId);
+    public List<LoanInstallmentResponse> getLoanInstallments(@PathVariable Long loanId) {
+        return installmentService.getInstallmentsByLoanId(loanId);
     }
 
 }

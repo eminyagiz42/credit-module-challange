@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
+
     private final UserService userService;
     private final JWTUtil jwtUtil;
 

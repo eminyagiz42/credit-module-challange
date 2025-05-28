@@ -6,9 +6,9 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 public interface LoanService {
-    CreateLoanResponse create(CreateCreditLoanRequest createCreditLoanRequest);
+    CreateLoanResponse createLoan(CreateCreditLoanRequest createCreditLoanRequest);
 
-    List<LoanResponse> getLoans(GetAllCustomerLoanRequest allCustomerLoanRequest);
+    List<LoanResponse> getLoansByCustomerId(GetAllCustomerLoanRequest allCustomerLoanRequest);
 
     LoanResponse getLoanById(Long loanId);
 

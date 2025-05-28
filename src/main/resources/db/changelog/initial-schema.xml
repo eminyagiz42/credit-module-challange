@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+    <changeSet id="1732445247359-1" author="mahmut-berat">
+        <sql>
+            create sequence "user_id_seq";
+
+            create sequence "loan_id_seq";
+
+            create sequence "loan_installment_id_seq";
+            create table "user"
+            (
+                "id"                 BIGINT                     not null
+                    primary key,
+                "username"           CHARACTER VARYING(255) not null unique,
+                "role_name"          ENUM ('ADMIN', 'CUSTOMER') not null,
+                "name"               CHARACTER VARYING(255),
+                "password"           CHARACTER VARYING(255),
+                "credit_limit"       NUMERIC(38, 2),
+                "used_credit_limit"  NUMERIC(38, 2),
+                "created_date"       TIMESTAMP                  not null,
+                "last_modified_date" TIMESTAMP,
+                "created_by"         CHARACTER VARYING(255),
+                "last_modified_by"   CHARACTER VARYING(255),
+                "surname"            CHARACTER VARYING(255)
+            );
+
+            create table "loan"
+            (
+                "id"                    BIGINT    not null
+                    primary key,
+                "is_paid"               BOOLEAN   not null,
+                "loan_amount"           NUMERIC(38, 2),
+                "number_of_installment" INTEGER   not null,
+                "created_date"          TIMESTAMP not null,
+                "last_modified_date"    TIMESTAMP,
+                "user_id"               BIGINT,
+                "created_by"            CHARACTER VARYING(255),
+                "last_modified_by"      CHARACTER VARYING(255),
+                constraint "FKmrnfyic6xh8yqf30t2fd8x5ge"
+                    foreign key ("user_id") references "user"
+            );
+
+            create table "loan_installment"
+            (
+                "id"                 BIGINT    not null
+                    primary key,
+                "amount"             NUMERIC(38, 2),
+                "is_paid"            BOOLEAN   not null,
+                "paid_amount"        NUMERIC(38, 2),
+                "created_date"       TIMESTAMP not null,
+                "due_date"           TIMESTAMP,
+                "last_modified_date" TIMESTAMP,
+                "loan_id"            BIGINT,
+                "payment_date"       TIMESTAMP,
+                "created_by"         CHARACTER VARYING(255),
+                "last_modified_by"   CHARACTER VARYING(255),
+                constraint "FK6m32yt7g78292utlkr02h4p88"
+                    foreign key ("loan_id") references "loan"
+            );
+
+            create table "loan_installments"
+            (
+                "installments_id" BIGINT not null
+                    unique,
+                "loan_id"         BIGINT not null,
+                constraint "FK70ogub3yo36vm8jluru9us2au"
+                    foreign key ("installments_id") references "loan_installment",
+                constraint "FKly8hl8ukwbrp93gebuh9i1ykm"
+                    foreign key ("loan_id") references "loan"
+            );
+
+        </sql>
+    </changeSet>
+</databaseChangeLog>

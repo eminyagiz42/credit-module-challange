@@ -19,6 +19,7 @@ import java.util.Date;
 @EntityListeners(AuditingEntityListener.class)
 @MappedSuperclass
 public abstract class BaseEntity {
+
     @CreatedBy
     protected String createdBy;
 
